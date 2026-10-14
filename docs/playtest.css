@@ -1,0 +1,17 @@
+.playtest-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;margin:8px 0 12px;padding:6px 8px;border-radius:10px;background:#f7f0e2ed;color:var(--dim)}
+.playtest-bar button{font-size:14px;padding:9px 12px;white-space:nowrap}
+.playtest-help{font-size:14px;line-height:1.7;margin:10px 0;padding:10px 12px;background:#ffffff70;border:1px solid var(--edge);border-radius:10px}
+.playtest-help summary{cursor:pointer;font-weight:700}
+.save-notice{font-size:14px;padding:10px;background:#fff1c5;color:#6a3600;border-radius:8px}
+button:focus-visible,summary:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #215ab0;outline-offset:3px}
+#feedbackDialog{box-sizing:border-box;width:min(94vw,520px);max-height:90dvh;padding:22px;border:1px solid #a28c65;border-radius:16px;background:#f7f0e2;color:#2a2118;overflow:auto;font:16px/1.65 system-ui,sans-serif}
+#feedbackDialog::backdrop{background:#201a10b3}
+#feedbackDialog h2{margin:0;font-size:23px}
+#feedbackDialog label{display:block;margin-top:15px;font-weight:600}
+#feedbackDialog select,#feedbackDialog textarea{box-sizing:border-box;display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #aa9a7f;border-radius:8px;background:white;color:#2a2118;font:16px/1.5 system-ui,sans-serif}
+#feedbackDialog textarea{min-height:100px;resize:vertical}
+#feedbackDialog .row{flex-wrap:wrap;margin-top:16px}
+#feedbackDialog .small{font-size:13px;color:#65573d}
+#feedbackDialog [hidden]{display:none!important}
+#feedbackResult{min-height:1.5em;font-size:14px}
+@media(max-width:360px){#feedbackDialog{padding:16px}.playtest-bar{font-size:12px}}

@@ -1,0 +1,972 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>符文石板</title>
+<meta name="description" content="觀察符文、測試猜想，找出石板暗藏的規則。16 關繁體中文免費試玩。">
+<link rel="stylesheet" href="playtest.css">
+<style>
+:root{--board:#ece5d6;--board2:#ddd3bb;--line:#7d6e52;--chalk:#2a2118;--dim:#5a4c38;--ok:#1d6a2c;--bad:#a83420;--gold:#f2b705;--violet:#4b3a8c;--edge:#b8a98a;--slab1:#e6ddc7;--slab2:#d9cfb6;--socket:#cbbfa3;--btn:#e9e0c9;--bubble:#fffaf0;box-sizing:border-box;color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html[data-chap="1"]{--board:#f1e4c4;--board2:#e6d29f;--line:#8a6a2f;--dim:#5c4720;--edge:#c7a863;--slab1:#f3e3bd;--slab2:#e6d29f;--socket:#d8c28a;--btn:#f6e9c8;--bubble:#fffbec}
+html[data-chap="2"]{--board:#e4e9f1;--board2:#d3dbea;--line:#5a6b8c;--dim:#3d4a66;--edge:#a5b3cf;--slab1:#e8edf6;--slab2:#d3dbea;--socket:#bfcadf;--btn:#eef2f9;--bubble:#fbfcff}
+html{background:var(--board);scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--board);color:var(--chalk);font-family:"Noto Serif TC","Songti TC","PMingLiU",serif;-webkit-tap-highlight-color:transparent;font-size:17px}
+#app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:14px 14px 40px;background:transparent;color:var(--chalk);min-height:100vh}
+button{font:inherit;color:var(--chalk);background:var(--btn);border:2px solid var(--line);border-radius:10px;padding:12px;font-size:17px;cursor:pointer;touch-action:manipulation;box-shadow:0 3px 0 var(--edge)}
+button:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+button:focus-visible{outline:2px solid var(--violet);outline-offset:2px}
+button:disabled{opacity:.35}
+button.primary{background:var(--violet);color:#fff;border-color:#2c2158;box-shadow:0 3px 0 #2c2158;font-weight:700}
+button.primary:active:not(:disabled){box-shadow:0 1px 0 #2c2158}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+header button{border:none;background:transparent;box-shadow:none;font-size:32px;padding:0 14px;line-height:1}
+header div{text-align:center}
+h1{margin:0;font-size:30px;letter-spacing:.08em;text-shadow:0 1px 0 rgba(255,255,255,.75)}
+header #stat{background:none;border:none;box-shadow:none;color:var(--violet);font-size:15px;line-height:1.4;padding:2px 8px;margin-top:2px;text-decoration:underline;text-underline-offset:3px}
+.chap{margin:0 0 14px}
+.chead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.chead b{font-size:19px}.chead span{font-size:15px;color:var(--dim)}
+.cnote{font-size:15px;color:var(--dim);margin:0 0 6px;line-height:1.5}
+.lgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.lv{padding:6px 0;display:flex;flex-direction:column;align-items:center;min-height:58px;line-height:1.25}
+.lv .n{font-size:20px;font-weight:700}
+.lv .s{font-size:13px;min-height:16px;color:#8a5f00}
+.lv.sol{background:#dff3d9;border-color:var(--ok)}
+.lv.boss{border-color:#c9920a;background:linear-gradient(#fff3c4,#f1d27a)}
+.lv.cur{outline:3px solid var(--violet);outline-offset:1px}
+.lv:disabled{opacity:.45}
+
+.sheet p.unlock{color:#8a5f00;font-weight:700}
+.spellcard{background:linear-gradient(var(--slab1),var(--slab2));border:2px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;box-shadow:0 3px 0 var(--edge);transition:opacity .6s,transform .6s}
+.sc-head{display:flex;align-items:center;gap:12px}
+.sc-art{display:flex;gap:3px;flex:none}
+.sc-tag{font-size:14px;color:#8a5f00;font-weight:700}
+.sc-name{font-size:25px;font-weight:700;letter-spacing:.08em;line-height:1.3}
+.sc-story{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:17px;line-height:1.8}
+.bkc{margin-bottom:8px}
+.bk{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px}
+.bk svg{flex:none}
+.bkt{flex:1;display:flex;flex-direction:column;line-height:1.35}
+.bkt b{font-size:18px}.bkt small{font-size:14px;color:var(--dim)}
+.bks{font-size:15px;color:#8a5f00}
+.bkq{flex:none;width:40px;height:40px;border-radius:8px;background:var(--socket);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--dim)}
+.bk:disabled{opacity:.6}
+.bkstory{background:var(--bubble);border:2px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;line-height:1.8;margin-top:6px}
+
+/* 導師 */
+.mentor{display:flex;align-items:center;gap:10px;margin:10px 0 14px}
+.bubble{position:relative;flex:1;background:var(--bubble);border:2px solid var(--line);border-radius:14px;padding:10px 13px;font-size:17px;line-height:1.65;box-shadow:0 3px 0 var(--edge);transform-origin:left center}
+.bubble::before{content:"";position:absolute;left:-10px;top:26px;width:16px;height:16px;background:var(--bubble);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+.bubble.say{animation:rpop .35s cubic-bezier(.3,1.7,.5,1)}
+.owl{overflow:visible;flex:none}
+.owl .st{display:none}
+.owl[data-mood=idle] .m-idle,.owl[data-mood=think] .m-think,.owl[data-mood=wow] .m-wow,.owl[data-mood=happy] .m-happy,.owl[data-mood=puzzle] .m-puzzle{display:inline}
+.owl .blink{transform-box:fill-box;transform-origin:center;animation:blink 4.6s infinite}
+.owl .body{transform-box:fill-box;transform-origin:50% 100%;animation:breathe 3.6s ease-in-out infinite}
+.owl .puff{transform-box:fill-box;transform-origin:center;animation:puff 1.6s ease-out infinite}
+.owl.hop{animation:hop .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+@keyframes breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.025)}}
+@keyframes hop{0%{transform:translateY(0)}35%{transform:translateY(-12px) rotate(-4deg)}100%{transform:translateY(0)}}
+@keyframes puff{0%{transform:translateY(8px) scale(.5);opacity:0}30%{opacity:.85}100%{transform:translateY(-18px) scale(1.3);opacity:0}}
+
+/* 石板 */
+.board{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.col{background:linear-gradient(var(--slab1),var(--slab2));border:2px solid var(--line);border-radius:12px;padding:8px;min-height:120px;box-shadow:inset 0 2px 0 rgba(255,255,255,.6),inset 0 -3px 0 rgba(90,70,30,.12),0 3px 0 var(--edge)}
+.col h2{margin:2px 4px 8px;font-size:19px;font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.7)}
+.col.y h2{color:var(--ok)} .col.n h2{color:var(--bad)}
+.col .list{max-height:34vh;overflow-y:auto}
+.entry{display:flex;gap:0;width:100%;border:none;background:transparent;box-shadow:none;border-radius:6px;padding:5px 4px;flex-wrap:nowrap}
+.entry:active:not(:disabled){background:var(--line);box-shadow:none;transform:none}
+.entry.new{animation:glow 1.2s ease-out,drop .4s ease-out}
+@keyframes glow{from{background:#f6df8a}to{background:transparent}}
+@keyframes drop{from{transform:translateY(-14px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+.tiny{color:var(--dim);font-size:15px;margin:6px 4px 16px}
+.bench{border:2px solid var(--line);border-radius:14px;padding:12px;background:linear-gradient(var(--slab1),var(--slab2));box-shadow:inset 0 2px 0 rgba(255,255,255,.6),0 3px 0 var(--edge)}
+#slots{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.slot{aspect-ratio:1;border-radius:8px;background:var(--socket);box-shadow:inset 0 3px 6px rgba(60,40,10,.3),inset 0 -1px 0 rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;transition:background .2s}
+.slot.put{animation:put .28s ease-out}
+.slot.lit{background:#fff1b0;box-shadow:0 0 0 2px var(--gold),0 0 16px 4px rgba(242,183,5,.65);animation:pop .55s cubic-bezier(.3,1.7,.5,1) both;animation-delay:var(--d)}
+.slot.dim{background:#b3aa98;animation:shake .45s both;animation-delay:var(--d)}
+.slot.dim svg{opacity:.45}
+@keyframes put{0%{transform:scale(.5)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.28) rotate(-4deg)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+#result{text-align:center;min-height:34px;margin:10px 0 6px;font-size:22px;font-weight:700;text-shadow:0 1px 0 rgba(255,255,255,.7)}
+#result.pop{animation:rpop .45s cubic-bezier(.3,1.7,.5,1)}
+@keyframes rpop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+#result.y{color:var(--ok)} #result.n{color:var(--bad)}
+#palette{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#palette button{display:flex;justify-content:center;padding:8px;-webkit-user-select:none;user-select:none}
+.row{display:flex;gap:8px;margin-top:10px}
+.row button{flex:1}
+.foot{margin-top:16px}
+.big{flex:2!important;padding:14px}
+#hint{background:linear-gradient(var(--slab1),var(--slab2));border:2px solid var(--line);border-radius:12px;padding:14px;margin-top:12px;line-height:1.8;font-size:18px}
+#hint .ans{margin-top:10px;font-size:16px}
+#ov{position:fixed;inset:0;background:rgba(42,33,24,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9}
+.sheet{background:var(--board);color:var(--chalk);width:100%;max-width:480px;border-radius:18px 18px 0 0;border-top:3px solid var(--line);padding:16px 14px 22px;max-height:92vh;overflow-y:auto;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h3{margin:0 0 6px;font-size:24px}
+.sheet p{color:var(--dim);margin:0 0 12px;font-size:17px;line-height:1.6}
+.crow{display:flex;align-items:center;gap:6px;padding:8px;border-radius:10px;background:linear-gradient(var(--slab1),var(--slab2));border:2px solid var(--line);margin-bottom:8px}
+.crow .t{display:flex;gap:1px;flex:1}
+.crow button{padding:9px 10px;font-size:16px}
+.crow button.on.y{background:var(--ok);color:#fff;border-color:var(--ok)}
+.crow button.on.n{background:var(--bad);color:#fff;border-color:var(--bad)}
+.crow .tag{font-size:15px;color:var(--dim);text-align:right}
+.crow .mark{font-size:24px;font-weight:700;width:30px;text-align:center}
+.crow.right{background:#dff3d9;border-color:var(--ok);animation:pop .5s cubic-bezier(.3,1.7,.5,1)}
+.crow.right .mark{color:var(--ok)}
+.crow.wrong{background:#fbe1db;border-color:var(--bad);animation:shake .45s}
+.crow.wrong .mark{color:var(--bad)}
+.crow.sus{border-color:var(--gold);animation:pulse .45s infinite alternate}
+@keyframes pulse{from{box-shadow:0 0 0 0 rgba(242,183,5,0)}to{box-shadow:0 0 18px 5px rgba(242,183,5,.8)}}
+.reveal{font-size:21px;margin:10px 0;line-height:1.6;min-height:34px}
+.stars{display:flex;justify-content:center;gap:10px;font-size:46px;line-height:1.1;margin:0 0 4px}
+.stars span{color:#c9bfa6}
+.stars span.on{color:var(--gold);text-shadow:0 0 16px rgba(242,183,5,.85);animation:pop .6s cubic-bezier(.3,1.7,.5,1)}
+.win h3{text-align:center;font-size:28px}
+.win h3.gold{color:#8a5f00}
+.win .small{font-size:15px}
+#wb{transition:opacity .4s}
+input{font:inherit;font-size:20px;padding:10px;border:2px solid var(--line);border-radius:10px;width:100%;background:var(--bubble);color:var(--chalk);text-transform:uppercase}
+.code{font-size:34px;font-weight:700;letter-spacing:.12em;text-align:center;margin:8px 0;user-select:all}
+.msg{min-height:24px;margin-top:6px;font-size:16px}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:31}
+#flash.go{animation:fl .5s ease-out}
+@keyframes fl{0%{opacity:.85}100%{opacity:0}}
+#beam{position:fixed;left:50%;bottom:0;width:140px;height:100vh;margin-left:-70px;background:linear-gradient(to top,rgba(255,230,130,0),rgba(255,226,120,.95) 45%,rgba(255,255,255,0));opacity:0;pointer-events:none;z-index:29;transform-origin:50% 100%}
+#beam.go{animation:beam 1.1s ease-out}
+@keyframes beam{0%{transform:scaleX(.05);opacity:0}25%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1.8);opacity:0}}
+
+/* ===== 章節背景 ===== */
+#bg{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:480px;transform:translateX(-50%);pointer-events:none;z-index:0;overflow:hidden}
+.bgl{position:absolute;inset:0;opacity:0;transition:opacity 1s ease}
+.bgl.show{opacity:1}
+.bgmid{position:absolute;inset:0}
+.edge{position:absolute;top:0;bottom:0;width:10px}
+.edge.l{left:0}.edge.r{right:0}
+.pt{position:absolute;border-radius:50%;opacity:0;animation:var(--an) var(--d) linear var(--dl) infinite}
+@keyframes ember{0%{transform:translate(0,0);opacity:0}15%{opacity:.85}100%{transform:translate(var(--dx),-75vh);opacity:0}}
+@keyframes dust{0%{transform:translate(0,0);opacity:0}20%{opacity:.65}80%{opacity:.5}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+@keyframes spark{0%{transform:translate(0,0) scale(.6);opacity:0}30%{opacity:.95}100%{transform:translate(var(--dx),-65vh) scale(1.25);opacity:0}}
+#scene{position:absolute;left:0;right:0;top:0;height:132px;z-index:-1;pointer-events:none;animation:fadein .9s ease both}
+#scene svg{display:block;width:100%;height:100%}
+#foot{height:72px;margin:18px -14px -40px;pointer-events:none;animation:fadein .9s ease both}
+#foot svg{display:block;width:100%;height:100%}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick 1.1s ease-in-out infinite alternate}
+.flame2{transform-box:fill-box;transform-origin:50% 100%;animation:flick .8s ease-in-out infinite alternate-reverse}
+@keyframes flick{from{transform:scale(.92,.88);opacity:.85}to{transform:scale(1.06,1.12);opacity:1}}
+.glow,.beam,.crys{animation:gpulse 3.4s ease-in-out infinite alternate}
+@keyframes gpulse{from{opacity:.55}to{opacity:1}}
+.rays{transform-box:fill-box;transform-origin:center;animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.twinkle{animation:tw 3.2s ease-in-out infinite alternate}
+@keyframes tw{from{opacity:.14}to{opacity:.42}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}.pt{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="defs"></defs></svg>
+<div id="bg" aria-hidden="true"></div>
+<div id="app">
+  <div class="playtest-bar"><span>符文石板 · 試玩 v0.1.0</span><button type="button" onclick="openFeedback()">留下心得</button></div>
+  <details class="playtest-help"><summary>第一次玩？玩法與試玩說明</summary><p>先看左右的「符合／不符合」例子，猜一條規則；在下方排出符文，按「測試」驗證猜想。可以點現有例子，修改一個地方再測。想通後，挑戰判斷六列。</p><p>建議先玩 10–15 分鐘，隨時可以停，不必全破。有卡住也可以用提示。玩完請按「留下心得」，複製文字回傳給邀請你的人。</p><p>進度與心得草稿只存在這個瀏覽器；清除網站資料或使用無痕模式可能遺失。沒有自動上傳回饋。</p></details>
+  <p id="saveNotice" class="save-notice" role="status" hidden></p>
+  <div id="scene" aria-hidden="true"></div>
+  <header>
+    <button id="prev" aria-label="上一關">‹</button>
+    <div><h1 id="title"></h1><button id="stat" aria-label="開啟石板目錄"></button></div>
+    <button id="next" aria-label="下一關">›</button>
+  </header>
+  <div class="mentor" id="mentor"></div>
+  <section class="board">
+    <div class="col y"><h2>符合</h2><div class="list" id="yes"></div></div>
+    <div class="col n"><h2>不符合</h2><div class="list" id="no"></div></div>
+  </section>
+  <p class="tiny">點任一列，會複製到下方讓你修改再測。</p>
+  <section class="bench">
+    <details class="playtest-help"><summary id="parSummary">星數與測試次數</summary><p id="parDetails"></p><p>目前使用提示／看答案後，這關之後最多評為一星；挑戰失敗後無法重新取得三星。已獲得的最高星數會保留。重進關卡不會清除紀錄，星數不影響後續解鎖。</p></details>
+    <div id="slots"></div>
+    <div id="result"></div>
+    <div id="palette"></div>
+    <div class="row">
+      <button id="back">退一格</button>
+      <button id="clear">清空</button>
+      <button id="test" class="primary">測試</button>
+    </div>
+  </section>
+  <div class="row foot">
+    <button id="hintBtn">提示</button>
+    <button id="chal" class="primary big">我想通了，挑戰</button>
+  </div>
+  <div id="hint" hidden></div>
+  <div class="row"><button id="bookBtn"></button></div>
+  <div class="row"><button id="mute"></button></div>
+  <div class="row"><button id="codeBtn">進度碼（手動存檔／讀檔）</button></div>
+  <div id="foot" aria-hidden="true"></div>
+</div>
+<div id="ov" hidden><div class="sheet" id="sheet"></div></div>
+<canvas id="fx"></canvas>
+<div id="beam"></div>
+<div id="flash"></div>
+
+<script>
+const COL=['#e23b22','#f2b705','#1c6fd9'];
+const CN=['紅','黃','藍'];
+const cnt=(q,f)=>q.filter(f).length;
+const RULES=[
+ {r:'至少有一個紅色',h:'看顏色',f:q=>q.some(t=>t.c==0)},
+ {r:n=>`第一個是${n[1]}`,h:'看位置',f:q=>q[0].s==1},
+ {r:'完全沒有藍色',h:'看顏色',f:q=>!q.some(t=>t.c==2)},
+ {r:'符文總數是偶數',h:'看數量，不分顏色和符文種類',f:q=>q.length%2==0},
+ {r:'第一個和最後一個顏色相同',h:'看頭尾',f:q=>q[0].c==q[q.length-1].c},
+ {r:n=>`剛好有兩個${n[0]}`,h:'數某一種符文',f:q=>cnt(q,t=>t.s==0)==2},
+ {r:n=>`至少有一個紅色${n[1]}`,h:'單一符文同時具備兩個條件',f:q=>q.some(t=>t.s==1&&t.c==0)},
+ {r:'相鄰的符文顏色都不同',h:'看相鄰的兩個',f:q=>q.every((t,i)=>i==0||q[i-1].c!=t.c)},
+ {r:n=>`所有${n[1]}都是黃色（沒有${n[1]}也算符合）`,h:'「如果…就…」',f:q=>q.every(t=>t.s!=1||t.c==1)},
+ {r:'紅色比藍色多',h:'比較兩種數量',f:q=>cnt(q,t=>t.c==0)>cnt(q,t=>t.c==2)},
+ {r:'剛好用了兩種符文',h:'看符文種類有幾種',f:q=>new Set(q.map(t=>t.s)).size==2},
+ {r:n=>`${n[0]}和${n[2]}一樣多`,h:'比較兩種數量',f:q=>cnt(q,t=>t.s==0)==cnt(q,t=>t.s==2)},
+ {r:'顏色依 紅→黃→藍 排列，不會倒回去',h:'看整列的順序',f:q=>q.every((t,i)=>i==0||q[i-1].c<=t.c)},
+ {r:'符文種類的排列左右對稱',h:'看整體結構，只看符文種類',f:q=>q.every((t,i)=>t.s==q[q.length-1-i].s)},
+ {r:'最後一個符文是藍色',h:'看位置和顏色',f:q=>q[q.length-1].c==2},
+ {r:'所有符文的顏色都一樣',h:'看整列的顏色有幾種',f:q=>new Set(q.map(t=>t.c)).size==1},
+];
+const $=id=>document.getElementById(id);
+const on=(id,fn)=>{const e=$(id);if(e)e.onclick=fn;};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const key=q=>q.map(t=>t.s*3+t.c).join('');
+/* ===== 符文套組：每章一套 ===== */
+const TINT=['#ff7a5c','#ffdb5e','#6db4ff'];      // 刻痕發光色
+const RIM=['#e23b22','#f2b705','#1c6fd9'];       // 石片邊框色
+const SPIRAL=(()=>{let d='';const max=Math.PI*2*1.7;for(let a=0;a<=max;a+=.25){const r=1+7.6*a/max,x=12+r*Math.cos(a-1.2),y=12+r*Math.sin(a-1.2);d+=(a?'L':'M')+x.toFixed(2)+' '+y.toFixed(2);}return `<path d="${d}"/>`;})();
+const SETS=[
+ {name:'盧恩',names:['叉紋','菱紋','結紋'],tile:['#4f4940','#2a2622'],w:[3.1,2.5],glyph:[
+   '<path d="M12 19.5V5.5M12 12.5L6.5 6.5M12 12.5L17.5 6.5"/>',
+   '<path d="M12 5L18 11L12 17L6 11ZM7.5 20L12 17L16.5 20"/>',
+   '<path d="M7 5.5V18.5L17 5.5V18.5Z"/>']},
+ {name:'埃及聖書體',names:['眼','安卡','甲蟲'],tile:['#5b4631','#2e2216'],w:[2.7,2.2],glyph:[
+   '<path d="M3.5 11.5Q12 4.2 20.5 11.5Q12 18.8 3.5 11.5Z"/><circle cx="12" cy="11.5" r="2.3" fill="currentColor" stroke="none"/><path d="M12 17V21"/>',
+   '<ellipse cx="12" cy="7.6" rx="3.7" ry="4.4"/><path d="M12 12V21M6.3 14.6H17.7"/>',
+   '<ellipse cx="12" cy="13.6" rx="5.2" ry="6.4"/><circle cx="12" cy="5.4" r="1.8"/><path d="M12 7.2V20M6.8 10.6L4.4 9M6.8 14L4.2 14M7.2 17.4L4.6 19.4M17.2 10.6L19.6 9M17.2 14L19.8 14M16.8 17.4L19.4 19.4"/>']},
+ {name:'失傳文字',names:['環紋','星紋','旋紋'],tile:['#34405c','#161c30'],w:[3.0,2.4],glyph:[
+   '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>',
+   '<path d="M12 3.8L14.4 9.6L20.2 12L14.4 14.4L12 20.2L9.6 14.4L3.8 12L9.6 9.6Z"/>',
+   SPIRAL]},
+];
+/* 章節：ids 是規則編號（存檔用），最後一個是守門石板 */
+/* 各題的「合理測試次數」：超過就拿不到三星 */
+const PAR={0:5,1:5,2:5,3:8,4:8,5:8,6:6,7:10,8:12,9:10,10:8,11:10,12:12,13:12,14:5,15:6};
+const CHAPS=[
+ {name:'入口迴廊',set:0,ids:[0,1,5,2,3]},
+ {name:'中庭',set:1,ids:[4,8,6,10,7,9]},
+ {name:'深殿',set:2,ids:[11,14,12,15,13]},
+];
+const ORDER=CHAPS.flatMap(c=>c.ids);
+const chapOf=id=>CHAPS.findIndex(c=>c.ids.includes(id));
+const isBoss=id=>{const c=CHAPS[chapOf(id)];return c.ids[c.ids.length-1]===id;};
+const setOf=id=>CHAPS[chapOf(id)].set;
+const T=(v,l)=>typeof v==='function'?v(SETS[setOf(l)].names):v;
+const solvedN=ids=>ids.filter(i=>data.solved.includes(i)).length;
+const need=c=>Math.ceil((c.ids.length-1)*2/3);
+const chapOpen=ci=>ci==0||solvedN(CHAPS[ci-1].ids.slice(0,-1))>=need(CHAPS[ci-1]);
+const isOpen=id=>{const ci=chapOf(id);if(!chapOpen(ci))return false;if(!isBoss(id))return true;const c=CHAPS[ci];return solvedN(c.ids.slice(0,-1))==c.ids.length-1;};
+const bossId=c=>c.ids[c.ids.length-1];
+$('defs').innerHTML=SETS.map((s,i)=>`<linearGradient id="tRune${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.tile[0]}"/><stop offset="1" stop-color="${s.tile[1]}"/></linearGradient>`).join('');
+function elemMark(c,col){
+  if(c==0)return `<path d="M0 -3.4C1.2 -1.6 2.6 -.6 2.6 1.1A2.6 2.6 0 0 1 -2.6 1.1C-2.6 -.4 -1.3 -1 0 -3.4Z" fill="${col}"/>`;
+  if(c==1){let r='';for(let i=0;i<8;i++){const a=i*Math.PI/4;r+=`M${(Math.cos(a)*2.4).toFixed(2)} ${(Math.sin(a)*2.4).toFixed(2)}L${(Math.cos(a)*3.6).toFixed(2)} ${(Math.sin(a)*3.6).toFixed(2)}`;}
+    return `<circle r="1.5" fill="${col}"/><path d="${r}" stroke="${col}" stroke-width=".9" stroke-linecap="round" fill="none"/>`;}
+  return `<path d="M-3 -1Q-1.5 -2.6 0 -1T3 -1M-3 1.8Q-1.5 .2 0 1.8T3 1.8" fill="none" stroke="${col}" stroke-width="1.1" stroke-linecap="round"/>`;
+}
+function svgSet(t,sz,si,sa){
+  const set=SETS[si],col=TINT[t.c],big=sz>=30,w=set.w[big?1:0],g=set.glyph[t.s];
+  const line=(sw,op)=>`<g fill="none" stroke="${col}" color="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" opacity="${op}">${g}</g>`;
+  const gid=sa?'tt':`tRune${si}`;
+  return `<svg ${sa?'xmlns="http://www.w3.org/2000/svg" ':''}viewBox="0 0 24 24" width="${sz}" height="${sz}"${sa?'':` role="img" aria-label="${CN[t.c]}色${set.names[t.s]}"`}>
+    ${sa?`<defs><linearGradient id="tt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${set.tile[0]}"/><stop offset="1" stop-color="${set.tile[1]}"/></linearGradient></defs>`:''}
+    <rect x="1" y="1" width="22" height="22" rx="4.5" fill="url(#${gid})" stroke="${RIM[t.c]}" stroke-width="1.6"/>
+    <path d="M4.2 2.8H19.8" stroke="#fff" opacity=".13" stroke-width="1" stroke-linecap="round"/>
+    ${big?`<g transform="translate(12 12.5) scale(2.5)" opacity=".17">${elemMark(t.c,col)}</g>`:''}
+    ${line(w+2.4,.28)}${line(w,1)}</svg>`;
+}
+const svg=(t,sz)=>svgSet(t,sz,setOf(lv),false);
+const CIMG={};
+function prepConfetti(si){
+  if(CIMG[si])return;
+  CIMG[si]=[];
+  for(let c=0;c<3;c++)for(let sh=0;sh<3;sh++){
+    const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgSet({s:sh,c},64,si,true));
+    CIMG[si].push(im);
+  }
+}
+/* ===== 咒語與故事（以規則編號對應） ===== */
+const STORY={
+ 0:{n:'火種',t:'石板亮起的瞬間，迴廊盡頭的火把一支支自己點燃了。導師說這是他算好的。你注意到他尾巴的羽毛焦了一小撮。'},
+ 1:{n:'先行',t:'刻文族很在意「誰先開口」。導師說這叫禮貌，你覺得他們只是怕被插嘴。'},
+ 5:{n:'雙生',t:'石板角落刻著一行小字：「不多不少，剛剛好。」導師說這是文法的精髓，然後把石板上的符文數錯了三次。'},
+ 2:{n:'乾涸',t:'迴廊的水槽裡積了不知多少年的水，石板一亮，水悄悄退光了。導師說：「我本來就想這樣。」'},
+ 3:{n:'成雙',t:'守門石板退到一旁，露出通往中庭的拱門。門柱上有人用刀刻了一行字：「別只看一塊石板，要看全部。」導師清清喉嚨：「咳，我早就說過，前面有人走過。」'},
+ 4:{n:'始終',t:'中庭的牆上有人用炭筆寫著：「第一天。我以為我懂了。」字跡很潦草，導師說他沒看過。他的耳羽紅了起來。'},
+ 8:{n:'空盟',t:'沒有安卡也算符合？導師說這叫「空洞的真」，聽起來很厲害。牆上的炭筆字寫著：「今天為了這條規則吵了一架，對手是石板。」'},
+ 6:{n:'赤印',t:'炭筆日記：「第二天。我開始記下每一次猜錯。錯得越徹底，越快知道邊界在哪裡。」導師點頭說這是常識，然後偷偷在自己的筆記本寫了下來。'},
+ 10:{n:'雙面',t:'炭筆日記：「第三天。有人說規則是被發明的，我覺得是被發現的。」導師問你怎麼想，你還沒回答，他先說：「我也這麼覺得。」'},
+ 7:{n:'交錯',t:'日記邊緣畫著一隻歪歪的貓頭鷹，旁邊寫：「今天又被石板嘲笑了。」導師說這一定是巧合，然後把頭轉向另一邊。'},
+ 9:{n:'火勢',t:'中庭深處的門打開了。日記最後一頁只剩半行：「別相信別人說的規則，自己去試。」後面被撕掉了。導師說他想休息一下，語氣有點不穩。'},
+ 11:{n:'均衡',t:'深殿的牆上刻滿了你從沒見過的文字。導師低聲說：「這個，我真的看不懂。」這是他第一次沒有裝懂。'},
+ 14:{n:'歸水',t:'牆上有一幅壁畫：一群人圍著石板，有人排符文，有人記錄，有人搖頭。他們沒有消失，他們只是一直在觀察。'},
+ 12:{n:'順流',t:'壁畫下方有一行銘文：「我們把所知刻成規則，留給願意觀察的人。」導師唸完以後，沉默了很久。'},
+ 15:{n:'同心',t:'石板亮起時，整座深殿的符文同時變成了同一種顏色。導師輕聲說：「這個景象，我見過。」'},
+ 13:{n:'回映',t:'最後一塊石板上沒有謎題，只有一行刻文：「觀察、猜測、推翻、再猜。這就是全部。」導師終於開口：「中庭的日記，是我寫的。我當年也是被這樣考過的學徒。」他把炭筆放進你手裡：「輪到你，替下一屆新生寫下第一行了。」'},
+};
+const rnd=n=>Math.floor(Math.random()*n);
+function randSeq(){const L=2+rnd(5);return Array.from({length:L},()=>({s:rnd(3),c:rnd(3)}));}
+function genWith(f,want,avoid){
+  for(let i=0;i<30000;i++){const q=randSeq();if(f(q)==want&&!avoid.has(key(q)))return q;}
+  return null;
+}
+
+
+/* ===== 導師（貓頭鷹） ===== */
+function owlSVG(id,size,mood){
+  return `<svg class="owl" id="${id}" data-mood="${mood||'idle'}" viewBox="0 0 100 106" width="${size}" height="${Math.round(size*1.06)}" role="img" aria-label="貓頭鷹導師">
+  <g class="body">
+    <ellipse cx="21" cy="70" rx="9" ry="20" fill="#8a5d36" stroke="#4a3220" stroke-width="2" transform="rotate(12 21 70)"/>
+    <ellipse cx="79" cy="70" rx="9" ry="20" fill="#8a5d36" stroke="#4a3220" stroke-width="2" transform="rotate(-12 79 70)"/>
+    <ellipse cx="50" cy="68" rx="30" ry="32" fill="#a9774a" stroke="#4a3220" stroke-width="2.2"/>
+    <ellipse cx="50" cy="79" rx="19" ry="19" fill="#ecd9ae"/>
+    <path d="M41 74q3 3 6 0M54 74q3 3 6 0M45 84q3 3 6 0M50 91q3 3 6 0" stroke="#c9ad78" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M39 98l-4 6M45 100l-2 6M55 100l2 6M61 98l4 6" stroke="#e0a53a" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+  <ellipse cx="50" cy="52" rx="26" ry="19" fill="#f3e4c1" stroke="#4a3220" stroke-width="1.6"/>
+  <g class="st m-idle"><g class="blink"><circle cx="38" cy="50" r="9" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="62" cy="50" r="9" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="38" cy="51" r="4.5" fill="#2a2118"/><circle cx="62" cy="51" r="4.5" fill="#2a2118"/><circle cx="39.6" cy="49.4" r="1.4" fill="#fff"/><circle cx="63.6" cy="49.4" r="1.4" fill="#fff"/></g></g>
+  <g class="st m-think"><circle cx="38" cy="50" r="9" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="62" cy="50" r="9" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="35" cy="46.5" r="4.5" fill="#2a2118"/><circle cx="59" cy="46.5" r="4.5" fill="#2a2118"/><path d="M29 39L46 42M54 37L71 35" stroke="#4a3220" stroke-width="2.6" stroke-linecap="round"/></g>
+  <g class="st m-wow"><circle cx="38" cy="50" r="11.5" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="62" cy="50" r="11.5" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="38" cy="50" r="3.2" fill="#2a2118"/><circle cx="62" cy="50" r="3.2" fill="#2a2118"/><path d="M28 35Q38 28 48 35M52 35Q62 28 72 35" stroke="#4a3220" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+  <g class="st m-happy"><path d="M29 52Q38 40 47 52M53 52Q62 40 71 52" stroke="#2a2118" stroke-width="3.4" fill="none" stroke-linecap="round"/><ellipse cx="29" cy="58" rx="5" ry="3" fill="#f2a29a" opacity=".7"/><ellipse cx="71" cy="58" rx="5" ry="3" fill="#f2a29a" opacity=".7"/></g>
+  <g class="st m-puzzle"><circle cx="38" cy="50" r="9" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><circle cx="62" cy="50" r="9" fill="#fff" stroke="#4a3220" stroke-width="1.6"/><path d="M33 45L43 55M43 45L33 55M57 45L67 55M67 45L57 55" stroke="#2a2118" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="50" cy="60" rx="20" ry="9" fill="#5a4c38" opacity=".18"/><circle class="puff" cx="84" cy="30" r="6" fill="#8d9390"/><circle class="puff" cx="92" cy="18" r="4.5" fill="#8d9390" style="animation-delay:.5s"/><circle class="puff" cx="12" cy="26" r="5" fill="#8d9390" style="animation-delay:.9s"/></g>
+  <g class="st m-idle m-think m-puzzle"><path d="M44 56L56 56L50 67Z" fill="#f0a42b" stroke="#7a4a10" stroke-width="1.6" stroke-linejoin="round"/></g>
+  <g class="st m-wow m-happy"><path d="M44 56L56 56L50 65Z" fill="#f0a42b" stroke="#7a4a10" stroke-width="1.6" stroke-linejoin="round"/><ellipse cx="50" cy="70" rx="5" ry="3.6" fill="#5a2a1a"/></g>
+  <g class="hat"><ellipse cx="50" cy="34" rx="29" ry="7" fill="#3b2d75" stroke="#2c2158" stroke-width="2"/><path d="M31 33L50 4L69 33Q50 39 31 33Z" fill="#4b3a8c" stroke="#2c2158" stroke-width="2" stroke-linejoin="round"/><path d="M33 31Q50 37 67 31" stroke="#f2b705" stroke-width="2.6" fill="none"/><path d="M50 -1l2.2 4.6 5 .6-3.7 3.4 1 5L50 10.2l-4.5 2.4 1-5-3.7-3.4 5-.6z" fill="#f2b705" stroke="#8a5f00" stroke-width="1"/></g>
+</svg>`;
+}
+const mentorRow=(oid,bid,mood,text,size)=>`<div class="mentor">${owlSVG(oid,size,mood)}<div class="bubble say" id="${bid}">${text}</div></div>`;
+function setMood(el,m,rest){
+  if(!el)return;
+  el.dataset.mood=m;
+  el.classList.remove('hop');void el.getBoundingClientRect();el.classList.add('hop');
+  clearTimeout(el._t);
+  if(rest!==0&&m!=='idle')el._t=setTimeout(()=>{el.dataset.mood='idle';},rest||3200);
+}
+function say(txt,mood,rest){
+  const b=$('bubble');if(!b)return;
+  b.textContent=txt;b.classList.remove('say');void b.offsetWidth;b.classList.add('say');
+  setMood($('owl'),mood||'idle',rest);
+}
+const pick=a=>a[rnd(a.length)];
+const L_OK=['共鳴了。嗯，跟我預料的一樣。','石板亮了！……我當然知道它會亮。','有反應，這個方向不錯。'];
+const L_NO=['沉默了……這也在我的計畫之內。','石板沒反應，換個角度想想？','嗯，這個不對，記下來。'];
+const L_COMBO=['連續共鳴！你該不會偷看答案了吧？','手感來了，繼續！'];
+let lastChap=-1;
+const CH_LINES=['這裡是入口迴廊。這一章的文字是盧恩，全是直線刻痕，比較好認。','中庭到了。文字換成埃及聖書體了——眼睛、安卡、甲蟲，別被它們的樣子唬住。','深殿。這是刻文族自己的文字……老實說，我也看不懂，我們一起猜吧。'];
+function sayLevel(first){
+  const ci=chapOf(lv),pos=ORDER.indexOf(lv)+1;
+  let t;
+  if(first&&!data.solved.length)t='石板上藏著一條規則。排排看、測測看，想通了再去挑戰。';
+  else if(ci!==lastChap)t=CH_LINES[ci];
+  else if(isBoss(lv))t='這是守門石板，比較難纏。慢慢來，我陪你。';
+  else t=`第 ${pos} 塊石板。慢慢想，我不趕時間。`;
+  lastChap=ci;
+  say(t,'think',3200);
+}
+
+
+/* ===== 章節背景 ===== */
+const gl=(si,k,x,y,sc,col,op,sw,cls)=>`<g${cls?` class="${cls}"`:''} transform="translate(${x} ${y}) scale(${sc})" fill="none" stroke="${col}" color="${col}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" opacity="${op}">${SETS[si].glyph[k]}</g>`;
+const torch=(x,y)=>`<g transform="translate(${x} ${y})"><circle class="glow" r="46" fill="url(#g0a)"/><rect x="-2.2" y="8" width="4.4" height="30" rx="1.5" fill="#6b4a2a"/><path d="M-6 6L6 6L3.5 14L-3.5 14Z" fill="#7a5632"/><path class="flame" d="M0 -22C6 -14 9 -8 7 0C5 6 -5 6 -7 0C-9 -8 -4 -12 0 -22Z" fill="#f08a24"/><path class="flame2" d="M0 -12C3 -8 4.5 -4 3 0C2 3 -2 3 -3 0C-4.5 -4 -1.5 -7 0 -12Z" fill="#ffd36a"/></g>`;
+const shard=(x,h,w,fill,base)=>`<polygon points="${x-w},${base} ${x+w},${base} ${x+w*.3},${base+h}" fill="${fill}"/>`;
+const SC=[
+ // 入口迴廊：石拱門與火把
+ `<svg viewBox="0 0 390 132" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><defs>
+   <radialGradient id="g0a"><stop offset="0" stop-color="#ffb347" stop-opacity=".65"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+   <linearGradient id="g0f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a6a50" stop-opacity=".26"/><stop offset="1" stop-color="#7a6a50" stop-opacity="0"/></linearGradient></defs>
+   <rect width="390" height="132" fill="url(#g0f)"/>
+   <path d="M-10 132V64Q-10 6 195 6Q400 6 400 64V132" fill="none" stroke="#6b5a40" stroke-opacity=".28" stroke-width="7"/>
+   <path d="M3 132V66Q3 19 195 19Q387 19 387 66V132" fill="none" stroke="#6b5a40" stroke-opacity=".16" stroke-width="3"/>
+   <path d="M180 0L210 0L205 24L185 24Z" fill="#6b5a40" fill-opacity=".3"/>
+   ${gl(0,0,185,1,.5,'#fff',.75,3)}
+   ${torch(70,44)}${torch(320,44)}</svg>`,
+ // 中庭：烈日、金字塔、聖書體飾帶
+ `<svg viewBox="0 0 390 132" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><defs>
+   <linearGradient id="g1s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dfa0" stop-opacity=".8"/><stop offset="1" stop-color="#f6dfa0" stop-opacity="0"/></linearGradient></defs>
+   <rect width="390" height="132" fill="url(#g1s)"/>
+   <g class="rays" transform="translate(318 42)" fill="#f2b705" fill-opacity=".32">${Array.from({length:12},(_,i)=>`<polygon transform="rotate(${i*30})" points="-3,-22 3,-22 0,-38"/>`).join('')}</g>
+   <circle cx="318" cy="42" r="19" fill="#f2b705" fill-opacity=".8"/><circle cx="318" cy="42" r="13" fill="#ffe27a"/>
+   <polygon points="6,132 62,80 118,132" fill="#b98a3e" fill-opacity=".26"/><polygon points="76,132 114,96 152,132" fill="#b98a3e" fill-opacity=".2"/>
+   ${Array.from({length:14},(_,i)=>gl(1,i%3,6+i*27,3,.5,'#8a6a2f',.4,3)).join('')}
+   <path d="M0 120Q60 108 130 117T260 114T390 110V132H0Z" fill="#d8b765" fill-opacity=".38"/></svg>`,
+ // 深殿：水晶洞窟與光束
+ `<svg viewBox="0 0 390 132" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><defs>
+   <linearGradient id="g2t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9c8ea" stop-opacity=".75"/><stop offset="1" stop-color="#b9c8ea" stop-opacity="0"/></linearGradient>
+   <linearGradient id="g2b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+   <rect width="390" height="132" fill="url(#g2t)"/>
+   <polygon class="beam" points="140,0 250,0 300,132 90,132" fill="url(#g2b)"/><polygon class="beam" style="animation-delay:-1.6s" points="180,0 215,0 235,132 160,132" fill="url(#g2b)"/>
+   <g class="crys">${[[10,38,9],[28,60,10],[47,30,8],[132,22,7],[262,18,7],[343,32,8],[362,56,10],[380,40,9]].map(([x,h,w])=>shard(x,h,w,'rgba(90,120,205,.38)',0)+shard(x-w*.45,h*.7,w*.45,'rgba(255,255,255,.3)',0)).join('')}</g>
+   ${gl(2,1,86,54,.9,'#4a63b0',.3,2.6,'twinkle')}${gl(2,0,284,62,.9,'#4a63b0',.3,2.6,'twinkle')}${gl(2,2,52,92,.8,'#4a63b0',.3,2.6,'twinkle')}</svg>`
+];
+const FT=[
+ `<svg viewBox="0 0 390 72" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><rect y="40" width="390" height="32" fill="#6b5a40" fill-opacity=".16"/><path d="M0 40H390" stroke="#6b5a40" stroke-opacity=".3" stroke-width="2"/>${Array.from({length:9},(_,i)=>`<path d="M${i*48} 40V72" stroke="#6b5a40" stroke-opacity=".18"/>`).join('')}${Array.from({length:7},(_,i)=>gl(0,i%3,22+i*52,45,.85,'#6b5a40',.4,2.8)).join('')}</svg>`,
+ `<svg viewBox="0 0 390 72" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><path d="M0 50Q70 36 140 48T280 46T390 40V72H0Z" fill="#d8b765" fill-opacity=".45"/><path d="M0 60Q90 48 180 58T390 54V72H0Z" fill="#c79f4c" fill-opacity=".4"/>${gl(1,2,183,32,1,'#8a6a2f',.5,2.4)}</svg>`,
+ `<svg viewBox="0 0 390 72" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><g class="crys">${[[34,52,10],[58,36,8],[334,46,9],[358,60,11],[16,30,7]].map(([x,h,w])=>shard(x,-h,w,'rgba(90,120,205,.38)',72)+shard(x-w*.45,-h*.7,w*.45,'rgba(255,255,255,.3)',72)).join('')}</g></svg>`
+];
+const BGS=[
+ {wash:'radial-gradient(120% 38% at 50% 0%,rgba(240,170,80,.20),transparent 70%),linear-gradient(rgba(0,0,0,0),rgba(107,90,64,.10))',
+  tile:'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="32"><path d="M0 .5H64M0 16.5H64M32 0V16M0 16V32M64 16V32" stroke="#6b5a40" stroke-opacity=".11" fill="none"/></svg>',
+  edge:'repeating-linear-gradient(180deg,rgba(107,90,64,.22) 0 26px,rgba(107,90,64,.10) 26px 28px)',
+  an:'ember',col:'#f08a24',n:12,sz:[3,5],dur:[7,13],dx:30,from:'bottom'},
+ {wash:'linear-gradient(180deg,rgba(247,214,130,.34),rgba(247,214,130,0) 34%,rgba(205,165,90,.22))',
+  tile:'<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><g fill="#96700f" fill-opacity=".14"><circle cx="6" cy="9" r=".9"/><circle cx="21" cy="30" r=".8"/><circle cx="38" cy="14" r="1"/><circle cx="30" cy="41" r=".8"/><circle cx="12" cy="44" r=".9"/><circle cx="43" cy="33" r=".7"/></g></svg>',
+  edge:'repeating-linear-gradient(180deg,rgba(138,106,47,.30) 0 6px,rgba(138,106,47,0) 6px 14px)',
+  an:'dust',col:'#d4a23a',n:12,sz:[2,4],dur:[12,20],dx:90,dy:-30,from:'top'},
+ {wash:'linear-gradient(180deg,rgba(150,175,230,.36),rgba(150,175,230,0) 34%,rgba(120,150,215,.20))',
+  tile:'<svg xmlns="http://www.w3.org/2000/svg" width="60" height="52"><path d="M0 52L30 0L60 52M0 0L30 52L60 0" stroke="#5069b4" stroke-opacity=".09" fill="none"/></svg>',
+  edge:'linear-gradient(90deg,rgba(95,125,210,.38),rgba(95,125,210,0))',
+  an:'spark',col:'#8fbaff',n:14,sz:[3,5],dur:[8,15],dx:24,from:'bottom'}
+];
+let bgCi=-1;
+function setBg(ci){
+  if(ci===bgCi)return;
+  bgCi=ci;
+  const host=$('bg'),B=BGS[ci],L=document.createElement('div');
+  L.className='bgl';L.style.background=B.wash;
+  let pts='';
+  for(let i=0;i<B.n;i++){
+    const sz=B.sz[0]+Math.random()*(B.sz[1]-B.sz[0]),d=B.dur[0]+Math.random()*(B.dur[1]-B.dur[0]);
+    const pos=B.from==='bottom'?'bottom:-12px':`top:${rnd(92)}%`;
+    pts+=`<i class="pt" style="left:${rnd(100)}%;${pos};width:${sz.toFixed(1)}px;height:${sz.toFixed(1)}px;background:${B.col};box-shadow:0 0 ${(sz*2).toFixed(0)}px ${B.col};--an:${B.an};--d:${d.toFixed(1)}s;--dl:${(-Math.random()*d).toFixed(1)}s;--dx:${((Math.random()-.5)*B.dx*2).toFixed(0)}px;--dy:${B.dy||0}px"></i>`;
+  }
+  L.innerHTML=`<div class="bgmid"></div><div class="edge l"></div><div class="edge r"></div>${pts}`;
+  L.querySelector('.bgmid').style.backgroundImage=`url("data:image/svg+xml,${encodeURIComponent(B.tile)}")`;
+  const el=L.querySelector('.edge.l'),er=L.querySelector('.edge.r');
+  el.style.background=B.edge;er.style.background=ci==2?'linear-gradient(270deg,rgba(95,125,210,.38),rgba(95,125,210,0))':B.edge;
+  host.appendChild(L);void L.offsetWidth;L.classList.add('show');
+  [...host.children].forEach(o=>{if(o!==L){o.classList.remove('show');setTimeout(()=>o.remove(),1100);}});
+  for(const [id,h] of [['scene',SC[ci]],['foot',FT[ci]]]){
+    const e=$(id);e.innerHTML=h;e.style.animation='none';void e.offsetWidth;e.style.animation='';
+  }
+}
+
+/* ===== 音效與震動 ===== */
+const PENT=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.51,1567.98,1760];
+let AC=null, muted=false;
+function ac(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(AC&&AC.state==='suspended'){try{AC.resume();}catch(e){}}
+  return AC;
+}
+function tone(f,t0,dur,type,vol,slide){
+  if(muted)return;const a=ac();if(!a)return;
+  const t=a.currentTime+t0,o=a.createOscillator(),g=a.createGain();
+  o.type=type||'sine';o.frequency.setValueAtTime(f,t);
+  if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,f*slide),t+dur);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||.1,t+.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05);
+}
+const vib=p=>{if(muted)return;try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}};
+const sfxPlace=(s,c)=>tone(PENT[c*3+s],0,.14,'triangle',.11);
+const sfxUndo=()=>tone(330,0,.07,'triangle',.08);
+const sfxClear=()=>tone(440,0,.18,'triangle',.08,.5);
+const sfxNo=()=>tone(160,0,.1,'square',.04);
+const sfxCopy=()=>{tone(700,0,.05,'triangle',.07);tone(880,.05,.06,'triangle',.07);};
+function sfxRes(combo){
+  const b=Math.min(Math.max(combo,1),5);
+  tone(PENT[b],0,.25,'triangle',.14);
+  tone(PENT[b+2],.07,.3,'triangle',.12);
+  tone(PENT[b+4],.14,.5,'sine',.1);
+}
+const sfxSil=()=>{tone(180,0,.32,'sine',.2,.55);tone(120,.05,.32,'triangle',.1,.6);};
+const sfxTick=k=>{const f=PENT[Math.min(k,9)];tone(f,0,.3,'triangle',.15);tone(f*2,0,.15,'sine',.05);};
+const sfxCard=()=>{tone(PENT[5],0,.6,'sine',.1);tone(PENT[7],.09,.7,'sine',.08);tone(PENT[9],.18,.8,'sine',.05);};
+const sfxUnlock=()=>{[0,3,5,7].forEach((n,i)=>tone(PENT[n],i*.09,.3,'triangle',.1));};
+const sfxMiss=()=>tone(150,0,.35,'sawtooth',.07,.6);
+const sfxSweep=()=>tone(300,0,1.3,'sine',.07,3);
+const sfxHit=()=>tone(80,0,.22,'sine',.25,.5);
+const sfxType=()=>tone(1400+rnd(300),0,.03,'square',.025);
+const sfxStar=i=>{tone(PENT[3+i*2],0,.4,'triangle',.14);tone(PENT[5+i*2]||1760,.05,.5,'sine',.08);};
+function sfxTriumph(gold){
+  const seq=gold?[0,1,2,3,4,5,6,7,8,9]:[0,2,3,5,7];
+  seq.forEach((n,i)=>tone(PENT[n],i*.07,.35,'triangle',.12));
+  const t=seq.length*.07;
+  [523.25,659.25,783.99,1046.5].forEach(f=>tone(f,t,1.0,'sine',.1));
+  if(gold)for(let i=0;i<8;i++)tone(1800+rnd(1500),t+i*.08,.18,'sine',.05);
+}
+document.addEventListener('pointerdown',()=>{if(!muted)ac();},{passive:true});
+
+/* ===== 視覺特效 ===== */
+function flash(){const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+function beam(){const b=$('beam');b.classList.remove('go');void b.offsetWidth;b.classList.add('go');}
+let raf=0;
+function burst(gold){
+  if(reduce)return;
+  const cv=$('fx'),dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight,si=setOf(lv);
+  prepConfetti(si);
+  const imgs=CIMG[si].filter(im=>im.complete&&im.naturalWidth);
+  cv.width=W*dpr;cv.height=H*dpr;
+  const c=cv.getContext('2d');c.scale(dpr,dpr);
+  const n=gold?110:70,ps=[];
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2,sp=4+Math.random()*(gold?13:9),spark=!imgs.length||(gold&&Math.random()<.35);
+    ps.push({x:W/2,y:H*.45,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-4,img:spark?null:imgs[rnd(imgs.length)],
+      s:rnd(3),r:spark?5+Math.random()*5:15+Math.random()*9,rot:Math.random()*6,vr:(Math.random()-.5)*.3,life:0,max:90+rnd(60)});
+  }
+  cancelAnimationFrame(raf);
+  const step=()=>{
+    c.clearRect(0,0,W,H);let alive=0;
+    for(const p of ps){
+      if(p.life>p.max)continue;alive++;p.life++;
+      p.vy+=.28;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+      c.save();c.globalAlpha=Math.max(0,1-p.life/p.max);c.translate(p.x,p.y);c.rotate(p.rot);
+      if(p.img)c.drawImage(p.img,-p.r,-p.r,p.r*2,p.r*2);
+      else{c.fillStyle='#ffd23f';c.strokeStyle='#2a2118';c.lineWidth=1.2;c.beginPath();
+        if(p.s==0)c.arc(0,0,p.r,0,7);
+        else if(p.s==1){c.moveTo(0,-p.r);c.lineTo(p.r,p.r*.8);c.lineTo(-p.r,p.r*.8);c.closePath();}
+        else c.rect(-p.r*.8,-p.r*.8,p.r*1.6,p.r*1.6);
+        c.fill();c.stroke();}
+      c.restore();
+    }
+    if(alive)raf=requestAnimationFrame(step);else c.clearRect(0,0,W,H);
+  };
+  step();
+}
+
+/* ===== 資料與存檔 ===== */
+let data={version:1,solved:[],logs:{},tests:{},att:{},peek:{},hint:{},stars:{},muted:false};
+let lv=0, build=[], lastNew=null, bstate=null, combo=0, ch=[];
+async function save(){const j=JSON.stringify(data);let stored=false;try{localStorage.setItem('rune-slab-playtest-v1',j);stored=true;}catch(e){}$('saveNotice').hidden=stored;$('saveNotice').textContent=stored?'':'瀏覽器無法保存進度。離開前請記下進度碼；進度碼只能還原已通關關卡。';}
+const firstOpen=()=>{const i=ORDER.find(id=>isOpen(id)&&!data.solved.includes(id));return i==null?ORDER[ORDER.length-1]:i;};
+const progCode=()=>'LJ'+data.solved.reduce((a,i)=>a|(1<<i),0).toString(36).toUpperCase();
+function norm(){
+  data.solved=data.solved||[];data.logs=data.logs||{};data.tests=data.tests||{};
+  data.att=data.att||{};data.peek=data.peek||{};data.stars=data.stars||{};
+  data.hint=data.hint||{};
+  data.seen=!!data.seen;
+  muted=!!data.muted;updMute();
+}
+function validSave(s){
+  const record=x=>x&&typeof x==='object'&&!Array.isArray(x);
+  const validId=i=>Number.isInteger(i)&&i>=0&&i<RULES.length;
+  if(!record(s)||s.version!==1||!Array.isArray(s.solved)||s.solved.some(i=>!validId(i))||new Set(s.solved).size!==s.solved.length)return false;
+  for(const name of ['logs','tests','att','peek','hint','stars']){
+    if(!record(s[name]))return false;
+    for(const [id,value] of Object.entries(s[name])){
+      if(!validId(Number(id))||String(Number(id))!==id)return false;
+      if(name==='logs'){
+        if(!Array.isArray(value)||value.some(e=>!record(e)||typeof e.ok!=='boolean'||!Array.isArray(e.q)||e.q.length<1||e.q.length>6||e.q.some(t=>!record(t)||![0,1,2].includes(t.s)||![0,1,2].includes(t.c))||RULES[id].f(e.q)!==e.ok))return false;
+      }else if(name==='peek'||name==='hint'){if(typeof value!=='boolean')return false;}
+      else if(!Number.isSafeInteger(value)||value<0||(name==='stars'&&value>3))return false;
+    }
+  }
+  return true;
+}
+async function load(){
+  try{
+    const raw=localStorage.getItem('rune-slab-playtest-v1');
+    if(raw!==null){if(raw.length>1000000)throw Error('oversized save');const saved=JSON.parse(raw);if(!validSave(saved))throw Error('invalid save');data=saved;}
+  }catch(e){
+    $('saveNotice').hidden=false;$('saveNotice').textContent='無法讀取原本進度。原始資料仍保留，遊戲暫停以避免覆寫。';
+    $('sheet').innerHTML='<h3>進度暫時無法讀取</h3><p>請下載原始資料，回傳給邀請你的人協助確認。若瀏覽器禁止儲存，請改用一般瀏覽模式或檢查網站設定。</p><button id="backupSave">下載原始進度</button>';
+    $('ov').hidden=false;
+    $('backupSave').onclick=()=>{try{const b=new Blob([localStorage.getItem('rune-slab-playtest-v1')||''],{type:'application/json'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='rune-slab-save-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);}catch(err){$('saveNotice').textContent='瀏覽器不允許讀取資料。請檢查網站儲存設定。';}};
+    return;
+  }
+  norm();lv=firstOpen();render();sayLevel(true);
+  if(!data.seen&&!data.solved.length)showPrologue();
+}
+function log(){
+  if(!data.logs[lv]){
+    const R=RULES[lv],av=new Set(),arr=[];
+    for(const w of [true,false,true,false,true,false]){const q=genWith(R.f,w,av);if(q){av.add(key(q));arr.push({q,ok:w});}}
+    data.logs[lv]=arr;save();
+  }
+  return data.logs[lv];
+}
+const openList=()=>ORDER.filter(isOpen);
+function goLevel(id){lv=id;resetBench();render();sayLevel();}
+function nextTarget(){
+  const L=openList(),i=L.indexOf(lv);
+  const after=L.slice(i+1).find(id=>!data.solved.includes(id));
+  return after!=null?after:L.find(id=>!data.solved.includes(id));
+}
+const unlockState=()=>({ch:CHAPS.map((_,i)=>chapOpen(i)),boss:CHAPS.map(c=>isOpen(bossId(c)))});
+function unlockMsgs(a,b){
+  const m=[];
+  CHAPS.forEach((c,i)=>{
+    if(!a.ch[i]&&b.ch[i])m.push(`新章節開啟：${c.name}（${SETS[c.set].name}）`);
+    if(!a.boss[i]&&b.boss[i])m.push(`${c.name}的守門石板出現了`);
+  });
+  return m;
+}
+function updMute(){$('mute').textContent=muted?'🔇 音效與震動：關':'🔊 音效與震動：開';}
+$('mute').onclick=()=>{muted=!muted;data.muted=muted;updMute();save();if(!muted){ac();sfxCopy();}};
+
+/* ===== 主畫面 ===== */
+function setRes(t,cls){const r=$('result');r.textContent=t;r.className=cls||'';if(cls){void r.offsetWidth;r.classList.add('pop');}}
+function resetBench(){build=[];bstate=null;combo=0;setRes('');}
+function render(){
+  const L=log();
+  $('parSummary').textContent=`星數說明 · 新測試 ${data.tests[lv]||0} 次`;
+  $('parDetails').textContent=`本關三星參考：不使用提示、首次挑戰全對，且新測試不超過 ${PAR[lv]} 次。無提示通關為二星；使用提示後通關為一星。重複測試同一列不計次。`;
+  const ci=chapOf(lv),pos=ORDER.indexOf(lv)+1;
+  document.documentElement.dataset.chap=ci;prepConfetti(setOf(lv));setBg(ci);
+  $('bookBtn').textContent=`📖 咒語冊（${data.solved.length}/${RULES.length}）`;
+  $('title').textContent=`第 ${pos} 塊石板`;
+  const st=data.stars[lv];
+  $('stat').textContent=`${CHAPS[ci].name}${isBoss(lv)?' · 守門':''}${data.solved.includes(lv)?' '+'★'.repeat(st||1):''} · 解開 ${data.solved.length}/${RULES.length} ▾`;
+  const OL=openList(),oi=OL.indexOf(lv);
+  $('prev').disabled=oi<=0;$('next').disabled=oi<0||oi>=OL.length-1;
+  ['yes','no'].forEach(id=>{
+    const el=$(id);el.innerHTML='';
+    L.map((e,i)=>({e,i})).filter(x=>x.e.ok==(id=='yes')).reverse().forEach(({e,i})=>{
+      const b=document.createElement('button');b.className='entry'+(i===lastNew?' new':'');
+      b.innerHTML=e.q.map(t=>svg(t,23)).join('');
+      b.onclick=()=>{build=e.q.map(t=>({...t}));bstate=null;setRes('');sfxCopy();renderBench();};
+      el.appendChild(b);
+    });
+  });
+  lastNew=null;
+  $('hint').hidden=true;
+  renderPalette();
+  renderBench();
+}
+function renderBench(pi){
+  $('slots').innerHTML=Array.from({length:6},(_,i)=>{
+    const cls=bstate=='y'?' lit':bstate=='n'?' dim':(i===pi?' put':'');
+    return `<div class="slot${cls}" style="--d:${i*70}ms">${build[i]?svg(build[i],44):''}</div>`;
+  }).join('');
+  $('test').disabled=!build.length;
+}
+function renderPalette(){$('palette').innerHTML=[0,1,2].flatMap(c=>[0,1,2].map(s=>`<button data-s="${s}" data-c="${c}" aria-label="${CN[c]}色${SETS[setOf(lv)].names[s]}">${svg({s,c},44)}</button>`)).join('');}
+$('palette').onclick=e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(build.length>=6){sfxNo();return;}
+  const s=+b.dataset.s,c=+b.dataset.c;
+  build.push({s,c});sfxPlace(s,c);bstate=null;setRes('');renderBench(build.length-1);
+};
+$('back').onclick=()=>{if(build.length)sfxUndo();build.pop();bstate=null;setRes('');renderBench();};
+$('clear').onclick=()=>{if(build.length)sfxClear();build=[];bstate=null;setRes('');renderBench();};
+$('test').onclick=()=>{
+  if(!build.length)return;
+  const ok=RULES[lv].f(build),L=log(),k=key(build);
+  const idx=L.findIndex(e=>key(e.q)==k);
+  const isNew=idx<0;
+  if(isNew){
+    L.push({q:build.map(t=>({...t})),ok});lastNew=L.length-1;
+    data.tests[lv]=(data.tests[lv]||0)+1;
+    combo=ok?combo+1:0;
+    save();
+  }else{lastNew=idx;}
+  bstate=ok?'y':'n';
+  render();
+  let txt=ok?'符合 ✓':'不符合 ✗';
+  if(ok&&combo>=2)txt+=`　連續 ${combo}`;
+  if(!isNew)txt+='（測過了）';
+  setRes(txt,ok?'y':'n');
+  if(ok){sfxRes(combo);vib(isNew?[18,30,18]:12);}else{sfxSil();vib(40);}
+  if(!isNew)say('這個你測過囉。','idle');
+  else if(ok&&combo>=3)say(pick(L_COMBO),'wow');
+  else if(ok)say(pick(L_OK),'happy',2200);
+  else say(pick(L_NO),'think',2600);
+};
+$('prev').onclick=()=>{const L=openList(),i=L.indexOf(lv);if(i>0)goLevel(L[i-1]);};
+$('next').onclick=()=>{const L=openList(),i=L.indexOf(lv);if(i>=0&&i<L.length-1)goLevel(L[i+1]);};
+function showHint(h){
+  data.hint[lv]=true;save();
+  say(`提示：${T(RULES[lv].h,lv)}。……我是說，大概是這個方向。`,'think',3500);
+  h.innerHTML=`提示：<b>${T(RULES[lv].h,lv)}</b><div class="ans" style="color:var(--dim)">用了提示，這題最多拿 1 星。</div><div class="ans">還是想直接看答案？<br><button id="giveup" style="margin-top:8px">放棄，直接看答案</button></div>`;
+  $('giveup').onclick=()=>{
+    data.peek[lv]=true;data.hint[lv]=true;save();
+    say('好吧。答案在下面，這題最多拿 1 星喔。','idle');
+    h.innerHTML=`規則是：<b>${T(RULES[lv].r,lv)}</b><div class="ans" style="color:var(--dim)">看過答案，這題最多拿 1 星。</div>`;
+  };
+}
+$('hintBtn').onclick=()=>{
+  const h=$('hint');h.hidden=!h.hidden;
+  if(h.hidden)return;
+  if(data.hint[lv]){showHint(h);return;}
+  say('想要提示嗎？要先說好，用了提示，這題最多拿 1 星。','think',3500);
+  h.innerHTML=`想要導師的提示嗎？<div class="ans" style="color:var(--dim)">用了提示，這題最多拿 1 星。</div><div class="row"><button id="hno">先不要</button><button id="hyes" class="primary big">看提示</button></div>`;
+  $('hno').onclick=()=>{h.hidden=true;};
+  $('hyes').onclick=()=>showHint(h);
+};
+
+/* ===== 挑戰：選擇 → 逐列揭曉 → 大演出 ===== */
+/* 常見的「錯誤猜想」：挑戰題要盡量能分辨它們與真正的規則 */
+const HYP=(()=>{
+  const H=[],add=f=>H.push(f);
+  for(let c=0;c<3;c++){
+    add(q=>q.some(t=>t.c==c));add(q=>!q.some(t=>t.c==c));
+    add(q=>q[0].c==c);add(q=>q[q.length-1].c==c);
+    for(const k of [1,2,3]){add(q=>cnt(q,t=>t.c==c)==k);add(q=>cnt(q,t=>t.c==c)>=k);}
+  }
+  for(let sh=0;sh<3;sh++){
+    add(q=>q.some(t=>t.s==sh));add(q=>!q.some(t=>t.s==sh));
+    add(q=>q[0].s==sh);add(q=>q[q.length-1].s==sh);
+    for(const k of [1,2,3]){add(q=>cnt(q,t=>t.s==sh)==k);add(q=>cnt(q,t=>t.s==sh)>=k);}
+    for(let c=0;c<3;c++)add(q=>q.some(t=>t.s==sh&&t.c==c));
+  }
+  add(q=>q.length%2==0);add(q=>q.length%2==1);
+  for(const k of [3,4,5]){add(q=>q.length>=k);add(q=>q.length<=k);}
+  add(q=>q[0].c==q[q.length-1].c);add(q=>q[0].s==q[q.length-1].s);
+  add(q=>q.every((t,i)=>i==0||q[i-1].c!=t.c));add(q=>q.every((t,i)=>i==0||q[i-1].s!=t.s));
+  add(q=>q.every((t,i)=>i==0||q[i-1].c==t.c));
+  add(q=>q.every((t,i)=>t.c==q[q.length-1-i].c));add(q=>q.every((t,i)=>t.s==q[q.length-1-i].s));
+  add(q=>q.every((t,i)=>i==0||q[i-1].c<=t.c));add(q=>q.every((t,i)=>i==0||q[i-1].c>=t.c));
+  add(q=>q.every((t,i)=>i==0||q[i-1].s<=t.s));
+  add(q=>new Set(q.map(t=>t.c)).size==1);add(q=>new Set(q.map(t=>t.s)).size==1);
+  for(const k of [2,3]){add(q=>new Set(q.map(t=>t.c)).size==k);add(q=>new Set(q.map(t=>t.s)).size==k);}
+  for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(a!=b){
+    add(q=>cnt(q,t=>t.c==a)>cnt(q,t=>t.c==b));add(q=>cnt(q,t=>t.s==a)>cnt(q,t=>t.s==b));
+    if(a<b){add(q=>cnt(q,t=>t.c==a)==cnt(q,t=>t.c==b));add(q=>cnt(q,t=>t.s==a)==cnt(q,t=>t.s==b));}
+  }
+  RULES.forEach(r=>add(r.f));
+  return H;
+})();
+const HYPC={};
+function hypsFor(id){
+  if(HYPC[id])return HYPC[id];
+  const R=RULES[id],S=Array.from({length:2500},randSeq),tr=S.map(q=>R.f(q)),out=[];
+  HYP.forEach(f=>{
+    let d=0;for(let i=0;i<S.length;i++)if(f(S[i])!==tr[i])d++;
+    d/=S.length;
+    if(d>0&&d<.97)out.push({f,w:1/(d+.02)});   // 很難被隨機題目推翻的猜想，權重越高
+  });
+  return HYPC[id]=out;
+}
+function mutate(q){
+  const a=q.map(x=>({...x})),r=rnd(4),nt=()=>({s:rnd(3),c:rnd(3)});
+  if(r==0){const i=rnd(a.length);a[i].c=(a[i].c+1+rnd(2))%3;}
+  else if(r==1){const i=rnd(a.length);a[i].s=(a[i].s+1+rnd(2))%3;}
+  else if(r==2&&a.length<6)a.splice(rnd(a.length+1),0,nt());
+  else if(a.length>2)a.splice(rnd(a.length),1);
+  else a[rnd(a.length)]=nt();
+  return a;
+}
+function makeChallenge(id,avoid){
+  const R=RULES[id],H=hypsFor(id),nT=2+rnd(3),nF=6-nT,pool=new Map();
+  const put=(q,near)=>{const k=key(q);if(avoid.has(k)||pool.has(k))return;pool.set(k,{q,ok:R.f(q),near,v:null,used:false});};
+  for(let i=0;i<400;i++)put(randSeq(),false);
+  [...pool.values()].forEach(e=>{for(let j=0;j<2;j++){const m=mutate(e.q);if(R.f(m)!==e.ok)put(m,true);}});
+  for(const w of [true,false]){   // 稀有規則補足候選
+    let have=[...pool.values()].filter(e=>e.ok===w).length;
+    for(let i=0;have<12&&i<40;i++){const q=genWith(R.f,w,new Set([...avoid,...pool.keys()]));if(q){put(q,false);have++;}}
+  }
+  const vec=e=>e.v||(e.v=H.map(h=>h.f(e.q)!==e.ok));
+  const ref=new Set(),chosen=[];
+  const order=[...Array(nT).fill(true),...Array(nF).fill(false)].sort(()=>Math.random()-.5);
+  for(const cls of order){
+    let best=null,bs=-1;
+    for(const e of pool.values()){
+      if(e.ok!==cls||e.used)continue;
+      const v=vec(e);let sc=0;
+      for(let i=0;i<v.length;i++)if(v[i]&&!ref.has(i))sc+=H[i].w;
+      sc=(sc+.5)*(e.near?1.15:1)*(.85+Math.random()*.3);
+      if(sc>bs){bs=sc;best=e;}
+    }
+    if(best){best.used=true;chosen.push(best);vec(best).forEach((x,i)=>{if(x)ref.add(i);});}
+  }
+  return chosen.sort(()=>Math.random()-.5).map(e=>({q:e.q,ok:e.ok,pick:null}));
+}
+$('chal').onclick=()=>{
+  ch=makeChallenge(lv,new Set(log().map(e=>key(e.q))));
+  drawSheet(false);$('ov').hidden=false;
+};
+function drawSheet(done){
+  let h=done?`<h3>有 ${ch.filter(c=>c.pick!==c.ok).length} 列判斷錯了</h3>`+mentorRow('sowl','wb2','puzzle','冒煙了……沒關係，我年輕時也炸過石板。紅框的是錯的，已加進石板當線索。',64)
+    :`<h3>判斷這 6 列</h3><p>全部答對才算解開。符合的列數不固定，可能是 2 到 4 列。答錯可回去繼續推理；會記錄一次挑戰，影響三星資格。送出後導師會陪你一列一列揭曉。</p>`;
+  ch.forEach((c,i)=>{
+    const st=done?(c.pick===c.ok?' right':' wrong'):'';
+    h+=`<div class="crow${st}"><div class="t">${c.q.map(t=>svg(t,24)).join('')}</div>
+      <button class="y ${c.pick===true?'on':''}" data-i="${i}" data-v="1" ${done?'disabled':''}>符合</button>
+      <button class="n ${c.pick===false?'on':''}" data-i="${i}" data-v="0" ${done?'disabled':''}>不符合</button></div>`;
+  });
+  if(!done)h+=`<div class="row"><button id="cx">先回去</button><button id="sub" class="primary big" ${ch.some(c=>c.pick===null)?'disabled':''}>送出</button></div>`;
+  else h+=`<div class="row"><button id="ret" class="primary big">回去觀察</button></div>`;
+  const s=$('sheet');s.innerHTML=h;
+  s.querySelectorAll('.crow button[data-i]').forEach(b=>b.onclick=()=>{ch[+b.dataset.i].pick=b.dataset.v=='1';sfxCopy();drawSheet(false);});
+  on('cx',()=>$('ov').hidden=true);
+  on('sub',()=>reveal());
+  on('ret',()=>{$('ov').hidden=true;render();});
+}
+async function reveal(){
+  data.att[lv]=(data.att[lv]||0)+1;save();
+  $('sheet').innerHTML=`<h3 id="rh">揭曉</h3>`+mentorRow('sowl','rp','think','一列一列來……我、我也在看。',64)+
+    ch.map((c,i)=>`<div class="crow" id="r${i}"><div class="t">${c.q.map(t=>svg(t,24)).join('')}</div><div class="tag">你選：${c.pick?'符合':'不符合'}</div><div class="mark" id="m${i}">？</div></div>`).join('');
+  await wait(600);
+  let good=0;
+  for(let i=0;i<ch.length;i++){
+    const c=ch[i],row=$('r'+i),last=i==ch.length-1;
+    if(last&&good==ch.length-1){
+      row.classList.add('sus');$('rp').textContent='最後一列……別緊張，我才緊張。';setMood($('sowl'),'wow',0);
+      sfxSweep();vib(25);await wait(1400);row.classList.remove('sus');
+    }else await wait(i==0?200:700);
+    const right=c.pick===c.ok;
+    row.classList.add(right?'right':'wrong');
+    $('m'+i).textContent=right?'✓':'✗';
+    row.querySelector('.tag').textContent=right?'答對了':`答案是：${c.ok?'符合':'不符合'}`;
+    if(right){good++;sfxTick(good-1);vib(15);if(!last)setMood($('sowl'),good>=3?'wow':'idle',700);}else{sfxMiss();vib([40,30,40]);setMood($('sowl'),'puzzle',900);}
+  }
+  await wait(700);
+  if(good===ch.length){
+    const first=!data.solved.includes(lv),was=unlockState();
+    if(first)data.solved.push(lv);
+    await celebrate(unlockMsgs(was,unlockState()),first);
+  }else{
+    const L=log();ch.filter(c=>c.pick!==c.ok).forEach(c=>L.push({q:c.q,ok:c.ok}));
+    save();drawSheet(true);
+  }
+}
+async function celebrate(unl,first){
+  const tests=data.tests[lv]||0,att=data.att[lv]||1,hinted=!!data.hint[lv]||!!data.peek[lv];
+  const stars=hinted?1:(att===1&&tests<=(PAR[lv]||8)?3:2);   // ★ 解開　★★ 沒用提示　★★★ 沒用提示+首次挑戰成功+測試不超過該題標準
+  data.stars[lv]=Math.max(data.stars[lv]||0,stars);save();
+  const gold=stars===3;
+  sfxHit();                 // 定格一拍
+  await wait(260);
+  flash();beam();burst(gold);sfxTriumph(gold);
+  vib(gold?[40,40,40,40,200]:[30,40,120]);
+  await wait(350);
+  await drawWin(stars,gold,false,unl,first);
+}
+async function drawWin(stars,gold,peek,unl,first){
+  unl=unl||[];
+  const s=$('sheet'),all=data.solved.length>=RULES.length,tgt=nextTarget(),fin=lv===13,st=STORY[lv];
+  const line=all?'十六塊石板……全部解開了。我、我要去擦一下眼睛。':fin?'走到這裡了。我有些話，等一下想告訴你。':(data.hint[lv]||data.peek[lv])?'借助提示也算解開，這題拿 1 星。下次試著自己想通吧。':gold?'靈光一閃！我就知道你辦得到。（其實剛剛有點擔心。）':'沒靠提示就解開了，不錯。想拿三星，要第一次挑戰就成功，而且測試不能太多。';
+  s.innerHTML=`<div class="win"><div class="stars" id="stars"><span>★</span><span>★</span><span>★</span></div>
+    <h3 class="${gold||fin?'gold':''}">${fin?'遺跡的謎底':gold?'靈光一閃！':'解開了！'}</h3>
+    ${mentorRow('sowl','wb2','happy',line,64)}
+    <div class="reveal">規則是：<b id="wr"></b></div>
+    <div class="spellcard" id="card" style="opacity:0;transform:translateY(10px)">
+      <div class="sc-head"><div class="sc-art">${[0,1,2].map(i=>svgSet({s:i,c:i},30,setOf(lv),false)).join('')}</div>
+        <div><div class="sc-tag">${first?'學會新咒語':'咒語（已收集）'}</div><div class="sc-name">〈${st.n}〉</div></div></div>
+      <div class="sc-story">${st.t}</div></div>
+    ${unl.map(m=>`<p class="unlock">🔓 ${m}</p>`).join('')}
+    <p class="small">進度碼：<b style="color:var(--chalk);font-size:20px">${progCode()}</b>（進度沒自動存到時可以還原）</p>
+     <div id="wb" style="opacity:0;pointer-events:none"><div class="row"><button id="stay">留在這題</button>${tgt!=null?'<button id="go" class="primary big">下一塊</button>':'<button id="gomap" class="primary big">石板目錄</button>'}</div><button onclick="openFeedback()">先玩到這裡，留下心得</button></div></div>`;
+  setMood($('sowl'),'happy',0);
+  const sp=[...s.querySelectorAll('#stars span')];
+  for(let i=0;i<3;i++){
+    await wait(i?380:150);
+    if(i<stars){sp[i].classList.add('on');sfxStar(i);vib(12);}
+  }
+  await wait(250);
+  const el=$('wr');
+  for(const chr of T(RULES[lv].r,lv)){
+    el.textContent+=chr;
+    if(!/[，。（）、\s]/.test(chr))sfxType();
+    await wait(55);
+  }
+  await wait(250);
+  const card=$('card');card.style.opacity=1;card.style.transform='none';sfxCard();vib(18);
+  await wait(700);
+  if(unl.length){sfxUnlock();vib([20,40,20]);}
+  const wb=$('wb');wb.style.opacity=1;wb.style.pointerEvents='auto';
+  try{s.scrollTo({top:s.scrollHeight,behavior:'smooth'});}catch(e){}
+  on('stay',()=>{$('ov').hidden=true;render();});
+  on('go',()=>{$('ov').hidden=true;goLevel(tgt);});
+  on('gomap',()=>{$('ov').hidden=true;render();openMap();});
+}
+
+/* ===== 咒語冊 ===== */
+function openBook(){
+  let h=`<h3>咒語冊</h3><p class="small">已收集 ${data.solved.length}/${RULES.length}。點開咒語，可以重讀那塊石板的故事。</p>`;
+  CHAPS.forEach((c,ci)=>{
+    h+=`<div class="chap"><div class="chead"><b>${c.name}</b><span>${SETS[c.set].name}</span></div>`;
+    c.ids.forEach(id=>{
+      const sol=data.solved.includes(id),st=STORY[id],pos=ORDER.indexOf(id)+1;
+      if(sol){
+        const art=svgSet({s:pos%3,c:(pos+ci)%3},40,c.set,false);
+        h+=`<div class="bkc"><button class="bk" data-id="${id}" aria-expanded="false">${art}<span class="bkt"><b>〈${st.n}〉${isBoss(id)?' ♛':''}</b><small>${T(RULES[id].r,id)}</small></span><span class="bks">${'★'.repeat(data.stars[id]||1)}</span></button><div class="bkstory" hidden>${st.t}</div></div>`;
+      }else{
+        h+=`<div class="bkc"><button class="bk" disabled><span class="bkq">？</span><span class="bkt"><b>〈？？？〉</b><small>第 ${pos} 塊石板・尚未解開</small></span></button></div>`;
+      }
+    });
+    h+='</div>';
+  });
+  h+=`<div class="row"><button id="bp">重看序章</button><button id="bc" class="primary big">關閉</button></div>`;
+  $('sheet').innerHTML=h;$('ov').hidden=false;
+  $('sheet').querySelectorAll('.bk[data-id]').forEach(b=>b.onclick=()=>{
+    const d=b.parentNode.querySelector('.bkstory');d.hidden=!d.hidden;b.setAttribute('aria-expanded',String(!d.hidden));sfxCopy();
+  });
+  $('bc').onclick=()=>$('ov').hidden=true;
+  $('bp').onclick=()=>showPrologue();
+}
+$('bookBtn').onclick=openBook;
+
+/* ===== 序章 ===== */
+function showPrologue(){
+  $('sheet').innerHTML=`<h3>歡迎來到遺跡</h3>${mentorRow('sowl','pb','happy','歡迎，新生！我是你的導師。',72)}
+  <p>這座遺跡的石板上，刻著失傳的「咒語文法」。每塊石板藏著一條規則，翻譯出來，你就能學會一個咒語。</p>
+  <p>規則不會告訴你。排幾個符文，按「測試」，石板會回應「符合」或「不符合」。想通了，就按「挑戰」，連續判斷 6 列全對，才算翻譯成功。</p>
+  <p>學會的咒語會收進咒語冊。放心，我會在旁邊……碎念。</p><p class="small">這是 16 關試玩版，先玩 10–15 分鐘即可，不必全破。卡住可以用提示，隨時能在頁面上方「留下心得」，複製回傳給邀請你的人。進度及心得只存於本機，沒有自動上傳。</p>
+  <div class="row"><button id="pgo" class="primary big">進入遺跡</button></div>`;
+  $('ov').hidden=false;
+  $('pgo').onclick=()=>{data.seen=true;save();$('ov').hidden=true;sayLevel(true);};
+}
+
+/* ===== 石板目錄 ===== */
+function openMap(){
+  let h=`<h3>石板目錄</h3><p class="small">每章解開大部分就能進下一章。金色的守門石板，要等該章其他石板都解開才會出現。<br>★ 解開　★★ 沒用提示　★★★ 沒用提示、第一次挑戰就成功，且測試次數不多</p>`;
+  CHAPS.forEach((c,ci)=>{
+    const open=chapOpen(ci),nb=c.ids.slice(0,-1);
+    h+=`<div class="chap"><div class="chead"><b>${c.name}</b><span>${SETS[c.set].name}${open?'':' 🔒'}</span></div>`;
+    if(!open){const pc=CHAPS[ci-1];h+=`<div class="cnote">解開「${pc.name}」的 ${need(pc)} 塊普通石板後開啟（目前 ${solvedN(pc.ids.slice(0,-1))}/${need(pc)}）</div>`;}
+    else if(!isOpen(bossId(c)))h+=`<div class="cnote">守門石板：還差 ${nb.length-solvedN(nb)} 塊普通石板</div>`;
+    h+='<div class="lgrid">'+c.ids.map(id=>{
+      const op=isOpen(id),sol=data.solved.includes(id),boss=isBoss(id);
+      const sub=sol?'★'.repeat(data.stars[id]||1):(op?'':'🔒');
+      return `<button class="lv${id===lv?' cur':''}${sol?' sol':''}${boss?' boss':''}" data-id="${id}" ${op?'':'disabled'} aria-label="第 ${ORDER.indexOf(id)+1} 塊${boss?'守門':''}石板${sol?'，已解開':op?'':'，未開啟'}"><span class="n">${ORDER.indexOf(id)+1}</span><span class="s">${sub}</span></button>`;
+    }).join('')+'</div></div>';
+  });
+  h+='<div class="row"><button id="mc" class="primary big">關閉</button></div>';
+  $('sheet').innerHTML=h;$('ov').hidden=false;
+  $('sheet').querySelectorAll('.lv').forEach(b=>b.onclick=()=>{$('ov').hidden=true;goLevel(+b.dataset.id);});
+  $('mc').onclick=()=>$('ov').hidden=true;
+}
+$('stat').onclick=openMap;
+
+/* ===== 進度碼 ===== */
+$('codeBtn').onclick=()=>{
+  const code=progCode();
+  $('sheet').innerHTML=`<h3>進度碼</h3><p>如果進度沒有自動保存，把這組碼記下來，下次輸入就能回到原本的進度。</p>
+  <div class="code">${code}</div>
+  <div class="row"><button id="cp">複製進度碼</button></div>
+  <p style="margin-top:18px">輸入之前記下的進度碼：</p>
+  <input id="ci" placeholder="例如 LJ7" autocomplete="off">
+  <div class="msg" id="cm"></div>
+  <div class="row"><button id="cc">關閉</button><button id="cr" class="primary big">讀取進度</button></div>`;
+  $('ov').hidden=false;
+  $('cc').onclick=()=>$('ov').hidden=true;
+  $('cp').onclick=()=>{try{navigator.clipboard.writeText(code).then(()=>$('cm').textContent='已複製').catch(()=>$('cm').textContent='無法自動複製，請長按上方的碼手動複製');}catch(e){$('cm').textContent='無法自動複製，請長按上方的碼手動複製';}};
+  $('cr').onclick=()=>{
+    const v=$('ci').value.trim().toUpperCase(),n=parseInt(v.slice(2),36);
+    if(!v.startsWith('LJ')||isNaN(n)||n>=(1<<RULES.length)){$('cm').textContent='進度碼格式不對，請檢查開頭是不是 LJ';return;}
+    data.solved=RULES.map((_,i)=>i).filter(i=>n&(1<<i));
+    save();lv=firstOpen();resetBench();$('ov').hidden=true;render();sayLevel(true);
+  };
+};
+$('mentor').innerHTML=owlSVG('owl',84)+'<div class="bubble" id="bubble"></div>';
+load();
+</script>
+<script src="playtest.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "name": "rune-slab-playtest",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "test": "node tests/check.cjs", "test:browser": "node tests/browser.cjs" },
+  "devDependencies": { "@playwright/test": "1.64.0" }
+}
