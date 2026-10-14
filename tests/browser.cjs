@@ -45,6 +45,8 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.evaluate(()=>data.stars[0]),3);
   await page.reload();assert(await page.evaluate(()=>data.solved.includes(0)));
   await page.screenshot({path:'artifacts/desktop.png',fullPage:true});
+  // Deterministic longest-row fixture catches small-screen overflow hidden by random shorter examples.
+  await page.evaluate(()=>{data.logs[lv]=[true,false].map(ok=>({q:Array.from({length:6},()=>({s:ok?1:0,c:0})),ok}));render();});
   for(const width of [320,390,768]){
    await page.setViewportSize({width,height:844});
    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow at ${width}`);
@@ -53,6 +55,9 @@ const server=http.createServer((req,res)=>{
    await page.locator('#feedbackClose').click();
   }
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'artifacts/mobile.png',fullPage:true});
+  await page.setViewportSize({width:320,height:844});await page.locator('#chal').click();
+  assert(await page.locator('#sheet').evaluate(e=>e.scrollWidth<=e.clientWidth),'challenge sheet overflow');
+  await page.locator('#cx').click();
   // All content screens, including conditional language and final story.
   await page.evaluate(()=>{data.solved=ORDER.slice();});
   for(let i=0;i<16;i++)await page.evaluate(i=>goLevel(ORDER[i]),i);
@@ -80,6 +85,13 @@ const server=http.createServer((req,res)=>{
    await m.goto(base);await m.evaluate(key=>localStorage.setItem(key,'{truncated'),key);await m.goto(base+'index.html');
    let caught=false;try{assert.equal(await m.evaluate(key=>localStorage.getItem(key),key),'{truncated');}catch(e){caught=true;}
    assert(caught,'regression assertion did not detect restored overwrite bug');await m.close();
+   const narrow=await browser.newPage({viewport:{width:320,height:844},reducedMotion:'reduce'});
+   const oldCss=fs.readFileSync('docs/playtest.css','utf8').replace(/^#app .*\n/gm,'');
+   await narrow.route('**/playtest.css',r=>r.fulfill({contentType:'text/css',body:oldCss}));
+   await narrow.goto(base);await narrow.locator('#pgo').click();
+   await narrow.evaluate(()=>{data.logs[0]=[0,2].map(c=>({q:Array.from({length:6},()=>({s:0,c})),ok:c===0}));render();});
+   assert(await narrow.evaluate(()=>document.documentElement.scrollWidth>innerWidth),'restored layout defect must fail width assertion');
+   await narrow.close();
   }
   console.log('PASS: real challenge + 3 stars, reload persistence, feedback draft/manual copy, 320/390/768/1280 widths, all 16 screens, 6 damaged save fixtures, write failure; mutation detected (local run).');
  }finally{await browser.close();await new Promise(r=>server.close(r));}

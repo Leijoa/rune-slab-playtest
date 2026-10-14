@@ -2,6 +2,10 @@
 .playtest-bar button{font-size:14px;padding:9px 12px;white-space:nowrap}
 .playtest-help{font-size:14px;line-height:1.7;margin:10px 0;padding:10px 12px;background:#ffffff70;border:1px solid var(--edge);border-radius:10px}
 .playtest-help summary{cursor:pointer;font-weight:700}
+#app .board{grid-template-columns:repeat(2,minmax(0,1fr))}
+#app .col{min-width:0}
+#app .entry svg{min-width:0;flex-shrink:1}
+@media(max-width:400px){#sheet .crow{flex-wrap:wrap}#sheet .crow .t{flex-basis:100%}#sheet .crow button{flex:1}}
 .save-notice{font-size:14px;padding:10px;background:#fff1c5;color:#6a3600;border-radius:8px}
 button:focus-visible,summary:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #215ab0;outline-offset:3px}
 #feedbackDialog{box-sizing:border-box;width:min(94vw,520px);max-height:90dvh;padding:22px;border:1px solid #a28c65;border-radius:16px;background:#f7f0e2;color:#2a2118;overflow:auto;font:16px/1.65 system-ui,sans-serif}
